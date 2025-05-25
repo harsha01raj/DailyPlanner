@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+        box-sizing: border-box;
+        text-align: center;
+      }
+      #header {
+        text-align: center;
+        border: 2px solid blue;
+        padding: 30px;
+        background-color: blue;
+        font-weight: bolder;
+        font-size: xxx-large;
+      }
+      #sec1 {
+        /* border: 2px solid black; */
+        padding: 30px;
+        text-align: center;
+      }
+      #sec1 > form {
+        width: fit-content;
+        margin: auto;
+      }
+      #sec1 > form > input {
+        width: 250px;
+        padding: 10px;
+        padding-left: 10px;
+        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px,
+          rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+        border-radius: 5px;
+        border: none;
+        margin-right: 20px;
+      }
+      #sec1 > form > input:focus {
+        outline: none;
+        border: none;
+      }
+      #sec1 > form > button {
+        padding: 5px;
+        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px,
+          rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+        border-radius: 5px;
+        border: none;
+        padding: 10px;
+      }
+
+      #sec1 > #inpdiv {
+        width: 250px;
+        padding: 10px;
+        padding-left: 10px;
+        margin-top: 25px;
+        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px,
+          rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+        border-radius: 5px;
+        margin: auto;
+        margin-top: 20px;
+      }
+      #sec1 > #inpdiv > input {
+        width: 100%;
+        border: none;
+      }
+      #sec1 > #inpdiv > input:focus {
+        outline: none;
+        border: none;
+        box-shadow: none;
+      }
+      #display {
+        /* border: 2px solid black; */
+      }
+      #display > li {
+        border-radius: 10px;
+        width: 80%;
+        margin: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px,
+          rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+        margin-top: 15px;
+        padding: 20px;
+        padding-left: 50px;
+        padding-right: 50px;
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+      }
+      #display > li:hover {
+        transform: translateY(-5px);
+        background-color: #f5f5f5;
+      }
+
+      #display > li > div {
+        display: flex;
+        gap: 30px;
+      }
+      #clear {
+        margin-top: 50px;
+        padding: 15px;
+        padding-left: 30px;
+        padding-right: 30px;
+        border: none;
+        background-color: blue;
+        font-weight: bolder;
+        font-size: larger;
+        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px,
+          rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+      }
+
+      #clear:hover {
+        transform: translateY(-5px);
+        background-color: #f5f5f5;
+      }
+      .completed {
+        text-decoration: line-through;
+        color: gray;
+      }
+      
+      #backToTopBtn {
+        display: none;
+        position: fixed;
+        bottom: 40px;
+        right: 40px;
+        padding: 10px 15px;
+        font-size: 20px;
+        cursor: pointer;
+        background: #333;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body onload="renderTask()">
+    <header id="header">My Daily Planner</header>
+    <section id="sec1">
+      <form onsubmit="addTask(event)">
+        <input type="text" id="task" required />
+        <button type="submit">Add Task</button>
+      </form>
+      <div id="inpdiv">
+        <input
+          type="text"
+          placeholder="Search your task..."
+          oninput="debouncedSearch(event)"
+        />
+      </div>
+    </section>
+    <section id="display"></section>
+    <button id="clear" onclick="clearAll()">Clear All Todos</button>
+    <button id="backToTopBtn" title="Back to top">↑</button>
+  </body>
+  <script>
+    let display = document.getElementById("display");
+    let tasks = JSON.parse(localStorage.getItem("Task")) || [];
+
+    function debounce(func, delay) {
+      let timer;
+      return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          func.apply(this, args);
+        }, delay);
+      };
+    }
+
+    function handleSearch(query) {
+      let filteredTasks = tasks.filter((task) =>
+        task.text.toLowerCase().includes(query.toLowerCase())
+      );
+      console.log(filteredTasks);
+      renderTask(filteredTasks);
+    }
+
+    const debouncedSearch = debounce((e) => {
+      handleSearch(e.target.value);
+    }, 300);
+
+    function deleteTask(id) {
+      tasks = tasks.filter((task) => task.id !== id);
+      saveTask();
+      renderTask();
+    }
+
+    function saveTask() {
+      localStorage.setItem("Task", JSON.stringify(tasks));
+    }
+
+    function addTask(e) {
+      e.preventDefault();
+      let text = document.getElementById("task").value;
+      if (!text) return;
+      const newTask = {
+        id: Date.now().toString(),
+        text: text,
+        completed: false,
+      };
+      tasks.push(newTask);
+      saveTask();
+      renderTask();
+    }
+
+    function handleUpdate(index) {
+      tasks[index].completed = !tasks[index].completed;
+      saveTask();
+      renderTask();
+    }
+
+    function renderTask(filteredTasks = tasks) {
+      display.innerHTML = "";
+      filteredTasks.forEach((element, index) => {
+        let li = document.createElement("li");
+        li.innerHTML = `
+        <div>
+            <input type="checkbox" ${
+              element.completed ? "checked" : ""
+            } onchange="handleUpdate(${index})" />
+        <h3 class="${element.completed ? "completed" : ""}">${element.text}</h3>
+        </div>
+      <span class="material-symbols-outlined" onclick="deleteTask('${
+        element.id
+      }') ">delete_forever</span>
+    `;
+        display.appendChild(li);
+      });
+    }
+
+    function clearAll() {
+      localStorage.removeItem("Task");
+      renderTask();
+    }
+    
+  </script>
+</html>
